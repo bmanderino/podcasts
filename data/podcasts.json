@@ -1,0 +1,24 @@
+{
+  "podcasts": [
+    {
+      "id": "the-daily",
+      "title": "The Daily",
+      "feed": "https://feeds.simplecast.com/54nAGcIl"
+    },
+    {
+      "id": "crime-junkie",
+      "title": "Crime Junkie",
+      "feed": "https://feeds.simplecast.com/qm_9xx0g"
+    },
+    {
+      "id": "apology-line",
+      "title": "The Apology Line",
+      "feed": "https://rss.art19.com/apology-line"
+    },
+    {
+      "id": "working-it-out",
+      "title": "Mike Birbiglia's Working It Out",
+      "feed": "https://workingitout.libsyn.com/rss"
+    }
+  ]
+}

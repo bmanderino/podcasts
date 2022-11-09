@@ -1,17 +1,84 @@
-import { getAllPostIds, getPostData } from '../../lib/show';
+import { useState, useEffect } from 'react';
+import Layout from '../../components/layout';
+import { useRouter } from 'next/router';
+import path from 'path';
+import fs from 'fs/promises';
+import convert from "xml-js"
 
-export default function Details() {
-  return <div>details</div>
+const getShowData = async () => {
+  const filePath = path.join(process.cwd(), 'data', 'podcasts.json');
+  const fileData = await fs.readFile(filePath);
+  const data = JSON.parse(fileData.toString());
+  return data;
 }
 
-export async function getStaticPaths() {
-  const paths = getAllShowIds();
+const fetchFeed = async (url) => {
+  const xmlFeed = await fetch(url).then(response => response.text())
+  let feed = convert.xml2js(xmlFeed, {compact: true, spaces: 4})
+  return feed
+}
+
+export default function Show({ ...props }) {
+  const {showData} = props
+  const [dataFeed, setDataFeed] = useState()
+
+  useEffect(() => {
+    fetchFeed(showData.feed).then(item => setDataFeed(item.rss.channel))
+  },[])
+
+  const router = useRouter();
+  if (props.hasError) {
+    return <h1>Error - please try another parameter</h1>
+  }
+
+  if (router.isFallback) {
+      return <h1>Loading...</h1>
+  }
+
+  return (
+    <Layout>
+      <div>
+        <h1>{showData.title}</h1>
+        <img src={dataFeed?.image.url[Object.keys(dataFeed?.image.url)[0]]} className="podImage" style={{height: '50px', width: '50px'}} />
+        <p>{dataFeed?.description[Object.keys(dataFeed?.description)[0]]}</p>
+        <div>
+          <h2>Episodes</h2>
+          <ul>
+          {dataFeed?.item.map(item => (
+            <li>{item.title._text}</li>
+          ))}
+          </ul>
+        </div>
+      </div>
+    </Layout>
+  )
+  // return <Layout>...</Layout>;
+}
+
+export const getStaticPaths = async () => {
+  const data = await getShowData();
+  const pathsWithParams = data.podcasts.map((item) => ({ params: { show: item.id }}))
+
   return {
-    paths,
-    fallback: false,
-  };
+      paths: pathsWithParams,
+      fallback: true
+  }
 }
 
-export async function getStaticProps({ params }) {
-  // Fetch necessary data for the blog post using params.id
+export const getStaticProps = async (context) => {
+  const itemID = context.params?.show;
+  const data = await getShowData();
+  const foundItem = data.podcasts.find((show) => itemID === show.id);
+
+  if (!foundItem) {
+    return {
+      props: { hasError: true },
+    }
+}
+
+return {
+  props: {
+    showData: foundItem
+  }
+}
 }
