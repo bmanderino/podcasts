@@ -62,7 +62,7 @@ export default function Show({ ...props }) {
 
 export const getStaticPaths = async () => {
   const data = await getShowData();
-  const pathsWithParams = data.podcasts.map((item) => ({ params: { show: item.id }}))
+  const pathsWithParams = data.Podcasts.map((item) => ({ params: { show: item.id }}))
 
   return {
       paths: pathsWithParams,
@@ -73,7 +73,7 @@ export const getStaticPaths = async () => {
 export const getStaticProps = async (context) => {
   const itemID = context.params?.show;
   const data = await getShowData();
-  const foundItem = data.podcasts.find((show) => itemID === show.id);
+  const foundItem = data.Podcasts.find((show) => itemID === show.id);
 
   if (!foundItem) {
     return {

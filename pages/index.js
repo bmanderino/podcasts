@@ -3,7 +3,7 @@ import Image from 'next/image'
 import styles from '../styles/Home.module.css'
 import Link from 'next/link';
 
-import {podcasts} from '../data/podcasts.json'
+import Podcasts from '../data/podcasts.json'
 
 export default function Home() {
   return (
@@ -19,7 +19,7 @@ export default function Home() {
           Podcasts
         </h1>
 
-        {podcasts.map(item => (
+        {Podcasts["Podcasts"].map(item => (
           <p className={styles.description} key={item.id}>
           <Link href={`/shows/${item.id}`}>{item.title}</Link>
         </p>
