@@ -6,12 +6,13 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: '**.simplecastcdn.com',
-      },{
+      },
+      {
         protocol: 'https',
         hostname: '**.art19.com',
       },
     ],
-  }
+  },
 }
 
 module.exports = nextConfig
