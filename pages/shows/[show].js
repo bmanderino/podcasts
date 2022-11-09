@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Layout from '../../components/layout';
 import { useRouter } from 'next/router';
+import Image from 'next/image'
 import path from 'path';
 import fs from 'fs/promises';
 import convert from "xml-js"
@@ -35,24 +36,28 @@ export default function Show({ ...props }) {
       return <h1>Loading...</h1>
   }
 
-  return (
-    <Layout>
-      <div>
-        <h1>{showData.title}</h1>
-        <img src={dataFeed?.image.url[Object.keys(dataFeed?.image.url)[0]]} className="podImage" style={{height: '50px', width: '50px'}} />
-        <p>{dataFeed?.description[Object.keys(dataFeed?.description)[0]]}</p>
+  if (dataFeed) {
+    return (
+      <Layout>
         <div>
-          <h2>Episodes</h2>
-          <ul>
-          {dataFeed?.item.map(item => (
-            <li>{item.title._text}</li>
-          ))}
-          </ul>
+          <h1>{showData.title}</h1>
+          <Image alt={showData.title} src={dataFeed?.image.url[Object.keys(dataFeed?.image.url)[0]]} height={50} width={50} />
+          <p>{dataFeed?.description[Object.keys(dataFeed?.description)[0]]}</p>
+          <div>
+            <h2>Episodes</h2>
+            <ul>
+            {dataFeed?.item.map((item,index) => (
+              <li key={index}>{item.title._text}</li>
+            ))}
+            </ul>
+          </div>
         </div>
-      </div>
-    </Layout>
-  )
-  // return <Layout>...</Layout>;
+      </Layout>
+    )
+  } else {
+    return <Layout><h1>{showData.title}</h1></Layout>;
+  }
+
 }
 
 export const getStaticPaths = async () => {
