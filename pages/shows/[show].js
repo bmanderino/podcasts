@@ -5,6 +5,10 @@ import Image from 'next/image'
 import path from 'path';
 import fs from 'fs/promises';
 import convert from "xml-js"
+import { Box } from '@mui/material';
+import { DataGrid } from '@mui/x-data-grid';
+
+
 
 const getShowData = async () => {
   const filePath = path.join(process.cwd(), 'data', 'podcasts.json');
@@ -20,14 +24,19 @@ const fetchFeed = async (url) => {
 }
 
 export default function Show({ ...props }) {
+  const router = useRouter();
   const {showData} = props
   const [dataFeed, setDataFeed] = useState()
 
   useEffect(() => {
-    fetchFeed(showData.feed).then(item => setDataFeed(item.rss.channel))
+    if (showData) fetchFeed(showData.feed).then(item => setDataFeed(item.rss.channel))
   },[])
 
-  const router = useRouter();
+  const handleRowClick = (param) => {
+    let page = param.row.path
+    router.push(`${router.asPath}/episodes/${page}`)
+  }
+
   if (props.hasError) {
     return <h1>Error - please try another parameter</h1>
   }
@@ -37,22 +46,33 @@ export default function Show({ ...props }) {
   }
 
   if (dataFeed) {
+    const columns = [
+      {field: 'title', headerName: 'Episodes', flex: 1 },
+    ]
+
+    const rows = []
+    for (let [index, obj] of dataFeed?.item.entries()) {
+      let data = {
+        id: index,
+        title: obj.title._text,
+        path: obj.title._text.toLowerCase().split(" ").join("-")
+      }
+      rows.push(data)
+    }
+
     return (
-      <Layout>
-        <div>
-          <h1>{showData.title}</h1>
-          <Image alt={showData.title} src={dataFeed?.image.url[Object.keys(dataFeed?.image.url)[0]]} height={50} width={50} />
-          <p>{dataFeed?.description[Object.keys(dataFeed?.description)[0]]}</p>
+        <Layout>
           <div>
-            <h2>Episodes</h2>
-            <ul>
-            {dataFeed?.item.map((item,index) => (
-              <li key={index}>{item.title._text}</li>
-            ))}
-            </ul>
+            <h1>{showData.title}</h1>
+            <Image alt={showData.title} src={dataFeed?.image.url[Object.keys(dataFeed?.image.url)[0]]} height={50} width={50} />
+            <p>{dataFeed?.description[Object.keys(dataFeed?.description)[0]]}</p>
+            <div>
+              <Box sx={{ height: 400, width: '100%' }}>
+                <DataGrid rows={rows} columns={columns} onRowClick={handleRowClick} />
+              </Box>
+            </div>
           </div>
-        </div>
-      </Layout>
+        </Layout>
     )
   } else {
     return <Layout><h1>{showData.title}</h1></Layout>;
@@ -79,11 +99,11 @@ export const getStaticProps = async (context) => {
     return {
       props: { hasError: true },
     }
-}
-
-return {
-  props: {
-    showData: foundItem
   }
-}
+
+  return {
+    props: {
+      showData: foundItem
+    }
+  }
 }
