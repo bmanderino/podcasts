@@ -1,39 +1,38 @@
-import { useState, useEffect, useContext, useMemo } from 'react';
-import EpisodeContext  from '../../context/EpisodeContext'
-import Layout from '../../components/layout';
-import { useRouter } from 'next/router';
+import { useState, useEffect, useContext, useMemo } from 'react'
+import EpisodeContext from '../../context/EpisodeContext'
+import Layout from '../../components/layout'
+import { useRouter } from 'next/router'
 import Image from 'next/image'
-import path from 'path';
-import fs from 'fs/promises';
-import convert from "xml-js"
-import { Box } from '@mui/material';
-import { DataGrid } from '@mui/x-data-grid';
-
-
+import path from 'path'
+import fs from 'fs/promises'
+import convert from 'xml-js'
+import { Box } from '@mui/material'
+import { DataGrid } from '@mui/x-data-grid'
 
 const getShowData = async () => {
-  const filePath = path.join(process.cwd(), 'data', 'podcasts.json');
-  const fileData = await fs.readFile(filePath);
-  const data = JSON.parse(fileData.toString());
-  return data;
+  const filePath = path.join(process.cwd(), 'data', 'podcasts.json')
+  const fileData = await fs.readFile(filePath)
+  const data = JSON.parse(fileData.toString())
+  return data
 }
 
 const fetchFeed = async (url) => {
-  const xmlFeed = await fetch(url).then(response => response.text())
-  let feed = convert.xml2js(xmlFeed, {compact: true, spaces: 4})
+  const xmlFeed = await fetch(url).then((response) => response.text())
+  let feed = convert.xml2js(xmlFeed, { compact: true, spaces: 4 })
   return feed
 }
 
 export default function Show({ ...props }) {
   let episodes = useContext(EpisodeContext)
-  const router = useRouter();
-  const {showData} = props
+  const router = useRouter()
+  const { showData } = props
   const [dataFeed, setDataFeed] = useState()
   const [episodeFeed, setEpisodeFeed] = useState([])
 
   useEffect(() => {
-    if (showData) fetchFeed(showData.feed).then(item => setDataFeed(item.rss.channel))
-  },[])
+    if (showData)
+      fetchFeed(showData.feed).then((item) => setDataFeed(item.rss.channel))
+  }, [])
 
   useEffect(() => {
     const rows = []
@@ -42,21 +41,20 @@ export default function Show({ ...props }) {
         let data = {
           id: index,
           title: obj.title._text,
-          path: obj.title._text.toLowerCase().split(" ").join("-"),
+          path: obj.title._text.toLowerCase().split(' ').join('-'),
           desc: obj.description._cdata,
-          audio: obj.enclosure._attributes.url
+          audio: obj.enclosure._attributes.url,
         }
         rows.push(data)
       }
-   }
+    }
     setEpisodeFeed(rows)
     episodes.setValue(rows)
-  },[dataFeed])
-
+  }, [dataFeed])
 
   const handleRowClick = (param) => {
     let page = param.row.path
-    router.push(`${router.asPath}/episodes/${page}`)
+    // router.push(`${router.asPath}/episodes/${page}`)
   }
 
   if (props.hasError) {
@@ -64,52 +62,60 @@ export default function Show({ ...props }) {
   }
 
   if (router.isFallback) {
-      return <h1>Loading...</h1>
+    return <h1>Loading...</h1>
   }
 
   if (dataFeed) {
-    const columns = [
-      {field: 'title', headerName: 'Episodes', flex: 1 },
-    ]
-
-
-
-
+    const columns = [{ field: 'title', headerName: 'Episodes', flex: 1 }]
 
     return (
-        <Layout>
+      <Layout>
+        <div>
+          <h1>{showData.title}</h1>
+          <Image
+            alt={showData.title}
+            src={dataFeed?.image.url[Object.keys(dataFeed?.image.url)[0]]}
+            height={50}
+            width={50}
+          />
+          <p>{dataFeed?.description[Object.keys(dataFeed?.description)[0]]}</p>
           <div>
-            <h1>{showData.title}</h1>
-            <Image alt={showData.title} src={dataFeed?.image.url[Object.keys(dataFeed?.image.url)[0]]} height={50} width={50} />
-            <p>{dataFeed?.description[Object.keys(dataFeed?.description)[0]]}</p>
-            <div>
-              <Box sx={{ height: 400, width: '100%' }}>
-                <DataGrid rows={episodeFeed} columns={columns} onRowClick={handleRowClick} />
-              </Box>
-            </div>
+            <Box sx={{ height: 400, width: '100%' }}>
+              <DataGrid
+                rows={episodeFeed}
+                columns={columns}
+                onRowClick={handleRowClick}
+              />
+            </Box>
           </div>
-        </Layout>
+        </div>
+      </Layout>
     )
   } else {
-    return <Layout><h1>{showData.title}</h1></Layout>;
+    return (
+      <Layout>
+        <h1>{showData.title}</h1>
+      </Layout>
+    )
   }
-
 }
 
 export const getStaticPaths = async () => {
-  const data = await getShowData();
-  const pathsWithParams = data.Podcasts.map((item) => ({ params: { show: item.id }}))
+  const data = await getShowData()
+  const pathsWithParams = data.Podcasts.map((item) => ({
+    params: { show: item.id },
+  }))
 
   return {
-      paths: pathsWithParams,
-      fallback: true
+    paths: pathsWithParams,
+    fallback: true,
   }
 }
 
 export const getStaticProps = async (context) => {
-  const itemID = context.params?.show;
-  const data = await getShowData();
-  const foundItem = data.Podcasts.find((show) => itemID === show.id);
+  const itemID = context.params?.show
+  const data = await getShowData()
+  const foundItem = data.Podcasts.find((show) => itemID === show.id)
 
   if (!foundItem) {
     return {
@@ -119,7 +125,7 @@ export const getStaticProps = async (context) => {
 
   return {
     props: {
-      showData: foundItem
-    }
+      showData: foundItem,
+    },
   }
 }
