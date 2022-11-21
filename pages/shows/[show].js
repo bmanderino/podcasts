@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext, useMemo } from 'react';
+import EpisodeContext  from '../../context/EpisodeContext'
 import Layout from '../../components/layout';
 import { useRouter } from 'next/router';
 import Image from 'next/image'
@@ -24,13 +25,34 @@ const fetchFeed = async (url) => {
 }
 
 export default function Show({ ...props }) {
+  let episodes = useContext(EpisodeContext)
   const router = useRouter();
   const {showData} = props
   const [dataFeed, setDataFeed] = useState()
+  const [episodeFeed, setEpisodeFeed] = useState([])
 
   useEffect(() => {
     if (showData) fetchFeed(showData.feed).then(item => setDataFeed(item.rss.channel))
   },[])
+
+  useEffect(() => {
+    const rows = []
+    if (dataFeed) {
+      for (let [index, obj] of dataFeed?.item.entries()) {
+        let data = {
+          id: index,
+          title: obj.title._text,
+          path: obj.title._text.toLowerCase().split(" ").join("-"),
+          desc: obj.description._cdata,
+          audio: obj.enclosure._attributes.url
+        }
+        rows.push(data)
+      }
+   }
+    setEpisodeFeed(rows)
+    episodes.setValue(rows)
+  },[dataFeed])
+
 
   const handleRowClick = (param) => {
     let page = param.row.path
@@ -50,15 +72,9 @@ export default function Show({ ...props }) {
       {field: 'title', headerName: 'Episodes', flex: 1 },
     ]
 
-    const rows = []
-    for (let [index, obj] of dataFeed?.item.entries()) {
-      let data = {
-        id: index,
-        title: obj.title._text,
-        path: obj.title._text.toLowerCase().split(" ").join("-")
-      }
-      rows.push(data)
-    }
+
+
+
 
     return (
         <Layout>
@@ -68,7 +84,7 @@ export default function Show({ ...props }) {
             <p>{dataFeed?.description[Object.keys(dataFeed?.description)[0]]}</p>
             <div>
               <Box sx={{ height: 400, width: '100%' }}>
-                <DataGrid rows={rows} columns={columns} onRowClick={handleRowClick} />
+                <DataGrid rows={episodeFeed} columns={columns} onRowClick={handleRowClick} />
               </Box>
             </div>
           </div>
