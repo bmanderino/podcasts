@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext, useMemo } from 'react'
+import { useState, useEffect, useContext } from 'react'
 import EpisodeContext from '../../context/EpisodeContext'
 import Layout from '../../components/layout'
 import { useRouter } from 'next/router'
@@ -70,25 +70,30 @@ export default function Show({ ...props }) {
 
     return (
       <Layout>
-        <div>
+        <main>
           <h1>{showData.title}</h1>
-          <Image
-            alt={showData.title}
-            src={dataFeed?.image.url[Object.keys(dataFeed?.image.url)[0]]}
-            height={50}
-            width={50}
-          />
-          <p>{dataFeed?.description[Object.keys(dataFeed?.description)[0]]}</p>
-          <div>
+          <section className="details">
+            <Image
+              alt={showData.title}
+              src={dataFeed?.image.url[Object.keys(dataFeed?.image.url)[0]]}
+              height={125}
+              width={125}
+            />
+            <p>
+              {dataFeed?.description[Object.keys(dataFeed?.description)[0]]}
+            </p>
+          </section>
+          <section className="episodes">
             <Box sx={{ height: 400, width: '100%' }}>
               <DataGrid
+                className="episodeGrid"
                 rows={episodeFeed}
                 columns={columns}
                 onRowClick={handleRowClick}
               />
             </Box>
-          </div>
-        </div>
+          </section>
+        </main>
       </Layout>
     )
   } else {
